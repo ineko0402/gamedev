@@ -1,0 +1,41 @@
+body {
+    font-family: "Yu Gothic", sans-serif;
+    margin: 20px;
+    background: #fafafa;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background: #f5f5f5;
+}
+
+.rating {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.rating[data-rate="1"] { color: #ff4444; } /* ☆ 傑作 */
+.rating[data-rate="2"] { color: #ff8800; } /* ○ まあ良い */
+.rating[data-rate="3"] { color: #ffaa00; } /* ◎ 独創的 */
+.rating[data-rate="4"] { color: #888; }    /* ◇ 何もない */
+.rating[data-rate="5"] { color: #6666ff; } /* △ 微妙 */
+.rating[data-rate="6"] { color: #444; }    /* ✕ 悪い */

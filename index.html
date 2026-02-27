@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>組み合わせ相性一覧</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>組み合わせ相性一覧</h1>
+
+<div class="controls">
+    <label>内容フィルタ：</label>
+    <select id="filterContent">
+        <option value="all">すべて表示</option>
+    </select>
+
+    <label>ジャンルフィルタ：</label>
+    <select id="filterGenre">
+        <option value="all">すべて表示</option>
+    </select>
+
+    <label>並び替え：</label>
+    <select id="sortOrder">
+        <option value="default">元の順</option>
+        <option value="rating">評価順（傑作→悪い）</option>
+    </select>
+</div>
+
+<table id="ratingTable">
+    <thead>
+        <tr>
+            <th>内容</th>
+            <th>ジャンル</th>
+            <th>相性</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+        <!-- JSで挿入 -->
+    </tbody>
+</table>
+
+<script src="script.js"></script>
+</body>
+</html>
