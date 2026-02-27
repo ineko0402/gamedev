@@ -8,8 +8,8 @@ const ratingMap = {
     "✕": 6  // 悪い
 };
 
-const data = [ { content:"スポーツ", genre:"RPG", rating:"◇" }, {
-content:"スポーツ", genre:"シミュレーション", rating:"◎" }, {
+const data = [ { content: "スポーツ", genre: "RPG", rating: "◇" }, {
+content: "スポーツ", genre: "シミュレーション", rating: "◎" }, {
 content:"スポーツ", genre:"シミュレーションRPG", rating:"◇" }, {
 content:"スポーツ", genre:"テーブルゲーム", rating:"◇" }, {
 content:"スポーツ", genre:"アクションゲーム", rating:"◯" }, {
