@@ -1,0 +1,26 @@
+{
+  "id": "/gamedev/",
+  "name": "ゲーム発展国++ 相性一覧",
+  "short_name": "相性一覧",
+  "description": "ゲーム発展国++の内容とジャンルの組み合わせ相性を検索するツールです。",
+  "lang": "ja",
+  "start_url": "/gamedev/",
+  "scope": "/gamedev/",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#2f65d9",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
