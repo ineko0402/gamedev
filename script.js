@@ -1397,68 +1397,121 @@ genre:"サウンドノベル", rating:"◇" }, { content:"芸能人",
 genre:"体感ゲーム", rating:"◇" }, { content:"芸能人", genre:"教育",
 rating:"◇" }, { content:"芸能人", genre:"カードゲーム", rating:"◇" }];
 
-// DOM
-const tableBody = document.getElementById("tableBody");
-const filterContent = document.getElementById("filterContent");
-const filterGenre = document.getElementById("filterGenre");
-const sortOrder = document.getElementById("sortOrder");
+const contents = [...new Set(data.map(row => row.content))];
+const genres = [...new Set(data.map(row => row.genre))];
+const ratingLabels = { "☆": "傑作", "◯": "まあ良い", "◎": "独創的", "◇": "ふつう", "△": "微妙", "✕": "悪い" };
+const storageKey = "gamedev-unlocked-items";
+const selection = document.getElementById("selection");
+const selectionLabel = document.getElementById("selectionLabel");
+const resultsTitle = document.getElementById("resultsTitle");
+const resultsNote = document.getElementById("resultsNote");
+const resultList = document.getElementById("resultList");
+const contentTab = document.getElementById("contentTab");
+const genreTab = document.getElementById("genreTab");
+const settingsDialog = document.getElementById("settingsDialog");
+const settingsList = document.getElementById("settingsList");
+const settingsSearch = document.getElementById("settingsSearch");
+const contentSettingsTab = document.getElementById("contentSettingsTab");
+const genreSettingsTab = document.getElementById("genreSettingsTab");
 
-// 初期化
-function init() {
-    populateFilters();
-    renderTable();
+let mode = "content";
+let settingsMode = "content";
+let unlocked = loadUnlocked();
+
+function loadUnlocked() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        if (saved) return { content: new Set(saved.content), genre: new Set(saved.genre) };
+    } catch (_) { /* 初回または保存データ不正時は全解放 */ }
+    return { content: new Set(contents), genre: new Set(genres) };
 }
 
-// フィルタの選択肢を生成
-function populateFilters() {
-    const contents = [...new Set(data.map(d => d.content))];
-    const genres = [...new Set(data.map(d => d.genre))];
-
-    contents.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        filterContent.appendChild(opt);
-    });
-
-    genres.forEach(g => {
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        filterGenre.appendChild(opt);
-    });
+function saveUnlocked() {
+    localStorage.setItem(storageKey, JSON.stringify({ content: [...unlocked.content], genre: [...unlocked.genre] }));
 }
 
-// 表の描画
-function renderTable() {
-    tableBody.innerHTML = "";
+function setMode(nextMode) {
+    mode = nextMode;
+    contentTab.classList.toggle("is-active", mode === "content");
+    genreTab.classList.toggle("is-active", mode === "genre");
+    contentTab.setAttribute("aria-selected", mode === "content");
+    genreTab.setAttribute("aria-selected", mode === "genre");
+    populateSelection();
+}
 
-    let filtered = data.filter(row => {
-        return (filterContent.value === "all" || row.content === filterContent.value) &&
-               (filterGenre.value === "all" || row.genre === filterGenre.value);
-    });
-
-    if (sortOrder.value === "rating") {
-        filtered.sort((a, b) => ratingMap[a.rating] - ratingMap[b.rating]);
+function populateSelection() {
+    const items = mode === "content" ? contents : genres;
+    const available = items.filter(item => unlocked[mode].has(item));
+    selection.innerHTML = "";
+    selectionLabel.textContent = `${mode === "content" ? "内容" : "ジャンル"}を選ぶ`;
+    resultsTitle.textContent = `相性のよい${mode === "content" ? "ジャンル" : "内容"}`;
+    if (!available.length) {
+        selection.add(new Option("解放済みの項目がありません", ""));
+        selection.disabled = true;
+    } else {
+        selection.disabled = false;
+        available.forEach(item => selection.add(new Option(item, item)));
     }
+    renderResults();
+}
 
-    filtered.forEach(row => {
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>${row.content}</td>
-            <td>${row.genre}</td>
-            <td class="rating" data-rate="${ratingMap[row.rating]}">${row.rating}</td>
-        `;
-
-        tableBody.appendChild(tr);
+function renderResults() {
+    const selected = selection.value;
+    const targetType = mode === "content" ? "genre" : "content";
+    const rows = data
+        .filter(row => row[mode] === selected && unlocked[targetType].has(row[targetType]))
+        .sort((a, b) => ratingMap[a.rating] - ratingMap[b.rating]);
+    resultList.innerHTML = "";
+    resultsNote.textContent = selected ? `${selected}との組み合わせ（評価順）` : "解放設定から項目を選択してください。";
+    if (!rows.length) {
+        resultList.innerHTML = '<li class="empty">表示できる組み合わせがありません。</li>';
+        return;
+    }
+    rows.forEach(row => {
+        const item = document.createElement("li");
+        item.className = "result-item";
+        item.innerHTML = `<span class="rating" data-rate="${ratingMap[row.rating]}">${row.rating}</span><span class="result-name">${row[targetType]}</span><span class="rating-label">${ratingLabels[row.rating]}</span>`;
+        resultList.appendChild(item);
     });
 }
 
-// イベント
-filterContent.addEventListener("change", renderTable);
-filterGenre.addEventListener("change", renderTable);
-sortOrder.addEventListener("change", renderTable);
+function renderSettings() {
+    const query = settingsSearch.value.trim().toLocaleLowerCase();
+    const items = (settingsMode === "content" ? contents : genres).filter(item => item.toLocaleLowerCase().includes(query));
+    settingsList.innerHTML = "";
+    items.forEach(item => {
+        const label = document.createElement("label");
+        label.className = "setting-row";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = unlocked[settingsMode].has(item);
+        checkbox.addEventListener("change", () => {
+            checkbox.checked ? unlocked[settingsMode].add(item) : unlocked[settingsMode].delete(item);
+            saveUnlocked();
+            populateSelection();
+        });
+        label.append(checkbox, document.createTextNode(item));
+        settingsList.appendChild(label);
+    });
+}
 
-// 実行
-init();
+function setSettingsMode(nextMode) {
+    settingsMode = nextMode;
+    contentSettingsTab.classList.toggle("is-active", settingsMode === "content");
+    genreSettingsTab.classList.toggle("is-active", settingsMode === "genre");
+    renderSettings();
+}
+
+contentTab.addEventListener("click", () => setMode("content"));
+genreTab.addEventListener("click", () => setMode("genre"));
+selection.addEventListener("change", renderResults);
+document.getElementById("openSettings").addEventListener("click", () => { settingsSearch.value = ""; renderSettings(); settingsDialog.showModal(); });
+contentSettingsTab.addEventListener("click", () => setSettingsMode("content"));
+genreSettingsTab.addEventListener("click", () => setSettingsMode("genre"));
+settingsSearch.addEventListener("input", renderSettings);
+document.getElementById("unlockAll").addEventListener("click", () => { unlocked[settingsMode] = new Set(settingsMode === "content" ? contents : genres); saveUnlocked(); renderSettings(); populateSelection(); });
+document.getElementById("lockAll").addEventListener("click", () => { unlocked[settingsMode].clear(); saveUnlocked(); renderSettings(); populateSelection(); });
+document.getElementById("scrollTop").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+window.addEventListener("scroll", () => document.getElementById("scrollTop").classList.toggle("is-visible", window.scrollY > 300), { passive: true });
+
+populateSelection();

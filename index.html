@@ -2,44 +2,43 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>組み合わせ相性一覧</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<h1>組み合わせ相性一覧</h1>
-
-<div class="controls">
-    <label>内容フィルタ：</label>
-    <select id="filterContent">
-        <option value="all">すべて表示</option>
-    </select>
-
-    <label>ジャンルフィルタ：</label>
-    <select id="filterGenre">
-        <option value="all">すべて表示</option>
-    </select>
-
-    <label>並び替え：</label>
-    <select id="sortOrder">
-        <option value="default">元の順</option>
-        <option value="rating">評価順（傑作→悪い）</option>
-    </select>
-</div>
-
-<table id="ratingTable">
-    <thead>
-        <tr>
-            <th>内容</th>
-            <th>ジャンル</th>
-            <th>相性</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody">
-        <!-- JSで挿入 -->
-    </tbody>
-</table>
-
-<script src="script.js"></script>
+    <header class="site-header">
+        <h1>組み合わせ相性一覧</h1>
+    </header>
+    <main>
+        <section class="search-panel" aria-label="相性検索">
+            <div class="search-header">
+                <div class="tabs" role="tablist" aria-label="検索方法">
+                    <button class="tab is-active" id="contentTab" type="button" role="tab" aria-selected="true">内容</button>
+                    <button class="tab" id="genreTab" type="button" role="tab" aria-selected="false">ジャンル</button>
+                </div>
+                <button class="settings-button" id="openSettings" type="button">⚙ 解放設定</button>
+            </div>
+            <label class="select-label" id="selectionLabel" for="selection">内容を選ぶ</label>
+            <select id="selection"></select>
+        </section>
+        <section class="results" aria-live="polite">
+            <h2 id="resultsTitle">相性のよいジャンル</h2>
+            <p class="results-note" id="resultsNote"></p>
+            <ul class="result-list" id="resultList"></ul>
+        </section>
+    </main>
+    <button class="scroll-top" id="scrollTop" type="button" aria-label="ページの先頭へ戻る">↑<span>上へ</span></button>
+    <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
+        <form method="dialog" class="dialog-content">
+            <div class="dialog-header"><h2 id="settingsTitle">解放済み設定</h2><button class="icon-button" value="cancel" aria-label="閉じる">×</button></div>
+            <div class="tabs" role="tablist" aria-label="設定する項目"><button class="tab is-active" id="contentSettingsTab" type="button">内容</button><button class="tab" id="genreSettingsTab" type="button">ジャンル</button></div>
+            <input class="settings-search" id="settingsSearch" type="search" placeholder="検索..." autocomplete="off">
+            <div class="bulk-actions"><button id="unlockAll" type="button">すべて解放</button><button id="lockAll" type="button">すべて解除</button></div>
+            <div class="settings-list" id="settingsList"></div>
+            <div class="dialog-footer"><button class="primary-button" value="close">完了</button></div>
+        </form>
+    </dialog>
+    <script src="script.js"></script>
 </body>
 </html>
