@@ -28,6 +28,13 @@ const settingsSearch = document.getElementById("settingsSearch");
 const contentSettingsTab = document.getElementById("contentSettingsTab");
 const genreSettingsTab = document.getElementById("genreSettingsTab");
 const openSettings = document.getElementById("openSettings");
+const openShareSettings = document.getElementById("openShareSettings");
+const shareSettingsDialog = document.getElementById("shareSettingsDialog");
+const shareCode = document.getElementById("shareCode");
+const shareQrCode = document.getElementById("shareQrCode");
+const importCode = document.getElementById("importCode");
+const shareMessage = document.getElementById("shareMessage");
+const sharePrefix = "GKD1.";
 
 let mode = "content";
 let settingsMode = "content";
@@ -68,6 +75,47 @@ function loadUnlocked() {
 
 function saveUnlocked() {
     localStorage.setItem(storageKey, JSON.stringify({ content: [...unlocked.content], genre: [...unlocked.genre] }));
+}
+
+function createShareCode() {
+    const payload = {
+        version: 1,
+        content: [...unlocked.content].filter(item => contents.includes(item)),
+        genre: [...unlocked.genre].filter(item => genres.includes(item))
+    };
+    const bytes = new TextEncoder().encode(JSON.stringify(payload));
+    const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+    return `${sharePrefix}${btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
+}
+
+function decodeShareCode(value) {
+    const input = value.trim();
+    const code = input.includes("?share=")
+        ? new URL(input).searchParams.get("share")
+        : input;
+    if (!code || !code.startsWith(sharePrefix)) throw new Error("共有コードの形式が正しくありません。");
+    const encoded = code.slice(sharePrefix.length).replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(encoded + "=".repeat((4 - encoded.length % 4) % 4));
+    const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, char => char.charCodeAt(0))));
+    if (payload.version !== 1 || !Array.isArray(payload.content) || !Array.isArray(payload.genre)) {
+        throw new Error("対応していない共有コードです。");
+    }
+    return {
+        content: new Set(payload.content.filter(item => contents.includes(item))),
+        genre: new Set(payload.genre.filter(item => genres.includes(item)))
+    };
+}
+
+function renderShareSettings() {
+    const code = createShareCode();
+    shareCode.value = code;
+    shareMessage.textContent = "";
+    importCode.value = "";
+    const shareUrl = new URL(window.location.href);
+    shareUrl.search = "";
+    shareUrl.hash = "";
+    shareUrl.searchParams.set("share", code);
+    shareQrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(shareUrl.toString())}`;
 }
 
 function setMode(nextMode) {
@@ -146,6 +194,32 @@ contentTab.addEventListener("click", () => setMode("content"));
 genreTab.addEventListener("click", () => setMode("genre"));
 selection.addEventListener("change", renderResults);
 openSettings.addEventListener("click", () => { settingsSearch.value = ""; renderSettings(); settingsDialog.showModal(); });
+openShareSettings.addEventListener("click", () => {
+    renderShareSettings();
+    shareSettingsDialog.showModal();
+});
+document.getElementById("copyShareCode").addEventListener("click", async () => {
+    try {
+        await navigator.clipboard.writeText(shareCode.value);
+        shareMessage.textContent = "共有コードをコピーしました。";
+    } catch (_) {
+        shareCode.select();
+        shareMessage.textContent = "共有コードを選択しました。コピーしてください。";
+    }
+});
+document.getElementById("importShareCode").addEventListener("click", () => {
+    try {
+        const imported = decodeShareCode(importCode.value);
+        if (!window.confirm("現在の解放設定を、この共有コードの設定に置き換えますか？")) return;
+        unlocked = imported;
+        saveUnlocked();
+        populateSelection();
+        renderSettings();
+        shareMessage.textContent = `設定を適用しました（内容${unlocked.content.size}件・ジャンル${unlocked.genre.size}件）。`;
+    } catch (error) {
+        shareMessage.textContent = error.message || "共有コードを読み込めませんでした。";
+    }
+});
 contentSettingsTab.addEventListener("click", () => setSettingsMode("content"));
 genreSettingsTab.addEventListener("click", () => setSettingsMode("genre"));
 settingsSearch.addEventListener("input", renderSettings);
@@ -170,4 +244,11 @@ document.getElementById("resetDefaults").addEventListener("click", () => {
 document.getElementById("scrollTop").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.getElementById("scrollTop").classList.toggle("is-visible", window.scrollY > 300), { passive: true });
 
-init();
+const sharedCode = new URLSearchParams(window.location.search).get("share");
+init().then(() => {
+    if (sharedCode) {
+        importCode.value = sharedCode;
+        shareSettingsDialog.showModal();
+        shareMessage.textContent = "共有設定を受け取りました。内容を確認して「この設定を適用」を押してください。";
+    }
+});
