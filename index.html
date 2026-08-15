@@ -6,7 +6,7 @@
     <title>組み合わせ相性一覧</title>
     <meta name="theme-color" content="#2f65d9">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=20260815.1">
+    <link rel="stylesheet" href="style.css?v=20260815.2">
 </head>
 <body>
     <header class="site-header">
@@ -37,10 +37,26 @@
             <div class="tabs" role="tablist" aria-label="設定する項目"><button class="tab is-active" id="contentSettingsTab" type="button">内容</button><button class="tab" id="genreSettingsTab" type="button">ジャンル</button></div>
             <input class="settings-search" id="settingsSearch" type="search" placeholder="検索..." autocomplete="off">
             <div class="bulk-actions"><button id="unlockAll" type="button">すべて解放</button><button id="lockAll" type="button">すべて解除</button><button id="resetDefaults" type="button">初期状態に戻す</button></div>
+            <button class="share-settings-button" id="openShareSettings" type="button">共有・引き継ぎ</button>
             <div class="settings-list" id="settingsList"></div>
             <div class="dialog-footer"><button class="primary-button" value="close">完了</button></div>
         </form>
     </dialog>
-    <script src="script.js?v=20260815.1"></script>
+    <dialog class="settings-dialog share-dialog" id="shareSettingsDialog" aria-labelledby="shareSettingsTitle">
+        <form method="dialog" class="dialog-content">
+            <div class="dialog-header"><h2 id="shareSettingsTitle">共有・引き継ぎ</h2><button class="icon-button" value="cancel" aria-label="閉じる">×</button></div>
+            <p class="share-description">解放済みの内容・ジャンルだけを、別の端末へ移せます。</p>
+            <label class="share-label" for="shareCode">共有コード</label>
+            <textarea class="share-code" id="shareCode" rows="3" readonly></textarea>
+            <button class="primary-button" id="copyShareCode" type="button">共有コードをコピー</button>
+            <div class="qr-wrap"><img id="shareQrCode" alt="共有用QRコード" referrerpolicy="no-referrer"></div>
+            <p class="share-hint">PCからスマホへは、このQRコードをスマホのカメラで読み取れます。</p>
+            <label class="share-label" for="importCode">別の端末の共有コードを読み込む</label>
+            <textarea class="share-code" id="importCode" rows="3" placeholder="共有コードまたは共有URLを貼り付け"></textarea>
+            <p class="share-message" id="shareMessage" aria-live="polite"></p>
+            <div class="dialog-footer"><button id="importShareCode" class="primary-button" type="button">この設定を適用</button><button value="close">完了</button></div>
+        </form>
+    </dialog>
+    <script src="script.js?v=20260815.2"></script>
 </body>
 </html>
