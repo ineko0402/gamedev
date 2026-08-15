@@ -1399,6 +1399,8 @@ rating:"◇" }, { content:"芸能人", genre:"カードゲーム", rating:"◇" 
 
 const contents = [...new Set(data.map(row => row.content))];
 const genres = [...new Set(data.map(row => row.genre))];
+const defaultUnlockedContents = ["埋蔵金", "動物", "ロボット", "時代劇", "忍者", "リバーシ", "ゴルフ", "マラソン"];
+const defaultUnlockedGenres = ["テーブルゲーム", "アドベンチャー", "素材集", "パズル", "教育"];
 const ratingLabels = { "☆": "傑作", "◯": "まあ良い", "◎": "独創的", "◇": "ふつう", "△": "微妙", "✕": "悪い" };
 const storageKey = "gamedev-unlocked-items";
 const selection = document.getElementById("selection");
@@ -1422,8 +1424,11 @@ function loadUnlocked() {
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey));
         if (saved) return { content: new Set(saved.content), genre: new Set(saved.genre) };
-    } catch (_) { /* 初回または保存データ不正時は全解放 */ }
-    return { content: new Set(contents), genre: new Set(genres) };
+    } catch (_) { /* 初回または保存データ不正時は初期解放項目を使用 */ }
+    return {
+        content: new Set(defaultUnlockedContents.filter(item => contents.includes(item))),
+        genre: new Set(defaultUnlockedGenres.filter(item => genres.includes(item)));
+    };
 }
 
 function saveUnlocked() {
@@ -1510,7 +1515,23 @@ contentSettingsTab.addEventListener("click", () => setSettingsMode("content"));
 genreSettingsTab.addEventListener("click", () => setSettingsMode("genre"));
 settingsSearch.addEventListener("input", renderSettings);
 document.getElementById("unlockAll").addEventListener("click", () => { unlocked[settingsMode] = new Set(settingsMode === "content" ? contents : genres); saveUnlocked(); renderSettings(); populateSelection(); });
-document.getElementById("lockAll").addEventListener("click", () => { unlocked[settingsMode].clear(); saveUnlocked(); renderSettings(); populateSelection(); });
+document.getElementById("lockAll").addEventListener("click", () => {
+    if (!window.confirm(`解放済みの${settingsMode === "content" ? "内容" : "ジャンル"}をすべて解除しますか？`)) return;
+    unlocked[settingsMode].clear();
+    saveUnlocked();
+    renderSettings();
+    populateSelection();
+});
+document.getElementById("resetDefaults").addEventListener("click", () => {
+    if (!window.confirm("内容・ジャンルの解放設定を初期状態に戻しますか？")) return;
+    unlocked = {
+        content: new Set(defaultUnlockedContents.filter(item => contents.includes(item))),
+        genre: new Set(defaultUnlockedGenres.filter(item => genres.includes(item)))
+    };
+    saveUnlocked();
+    renderSettings();
+    populateSelection();
+});
 document.getElementById("scrollTop").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.getElementById("scrollTop").classList.toggle("is-visible", window.scrollY > 300), { passive: true });
 
